@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+psycopg2-binary
+Flask-Migrate
+python-dotenv
+Flask-JWT-Extended
+marshmallow
+marshmallow-sqlalchemy
+werkzeug
+flask_cors
+
+#pip install -r ./requirements.txt
