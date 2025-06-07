@@ -2,33 +2,6 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-//name
-//phone_number
-//address
-
-// client
-// : 
-// address
-// : 
-// "mi casa"
-// created_at
-// : 
-// "Thu, 05 Jun 2025 20:43:18 GMT"
-// id
-// : 
-// 145
-// name
-// : 
-// "nuncio cliente"
-// phone_number
-// : 
-// "4491111111"
-// [[Prototype]]
-// : 
-// Object
-// msg
-// : 
-// "cliente creado con exito"
 
 export default function CreateClientScreen() {
 

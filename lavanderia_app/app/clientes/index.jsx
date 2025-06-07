@@ -5,8 +5,8 @@ import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'r
 
 
 export default function ClientsScreen() {
-  const router = useRouter()
   const [name, setName] = useState("")
+  const [phone, setPhoneN] = useState("")
   const [clientes, setClientes] = useState([])
 
   const searchName = async () => {
@@ -37,6 +37,38 @@ export default function ClientsScreen() {
     }
   }
 
+  const searchPhone = async () => {
+    try {
+      if (!phone) {
+        Alert.alert("error", "completa los datos")
+        return
+      }
+
+      const response = await fetch(`https://5q79hxmw-5000.usw3.devtunnels.ms/clients/search/phone?phone=${encodeURIComponent(phone)}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json()
+      
+      let dataArray = []
+      dataArray.push(data)
+
+      if (response.ok) {
+        Alert.alert("Usuario encontrado con exito")
+        console.log(dataArray)
+        setClientes(dataArray)
+
+      } else {
+        Alert.alert("Error al enviar los datos")
+      }
+
+    } catch (error) {
+      Alert.alert("error en el servidor")
+    }
+  }
+
+
 
   return (
     <View style={styles.container}>
@@ -49,8 +81,19 @@ export default function ClientsScreen() {
           onChangeText={(text) => setName(text)}
         />
         <Pressable style={styles.send} onPress={searchName}>
-          <Text style={styles.textButton}>Buscar</Text>
+          <Text style={styles.textButton}>Buscar por Nombre</Text>
         </Pressable>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Buscar por telefono"
+          value={phone}
+          onChangeText={(text) => setPhoneN(text)}
+        />
+        <Pressable style={styles.send} onPress={searchPhone}>
+          <Text style={styles.textButton}>Buscar por Telefono</Text>
+        </Pressable>
+
         <Pressable style={styles.send}>
           <Link href="/clientes/createC" style={styles.textButton}>Crear Cliente</Link>
         </Pressable>
@@ -70,7 +113,7 @@ export default function ClientsScreen() {
                     <Link href={`/clientes/updateC?id=${item.id}`} style={styles.textButton}>Update</Link>
                   </Pressable>
                   <Pressable style={styles.deleT}>
-                    <Text style={styles.textButton}>Delete</Text>
+                    <Link href={`/clientes/deleteC?id=${item.id}`} style={styles.textButton}>Delete</Link>
                   </Pressable>
                 </View>
               </View>
@@ -125,13 +168,13 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     fontSize: 20,
     paddingHorizontal: 10,
-    marginVertical: 15,
+    marginVertical: 5,
     backgroundColor: "white",
   },
   send: {
     backgroundColor: "blue",
     borderRadius: 10,
-    marginTop: 15,
+    marginTop: 5,
     alignItems: "center",
     paddingVertical: 10,
     width: 300

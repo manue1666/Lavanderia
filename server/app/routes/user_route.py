@@ -5,7 +5,7 @@ from app.Controllers.user_controller import login_user, logout_user, update_user
 from app.database.db import db
 
 
-
+ 
 user_bp= Blueprint("users", __name__, url_prefix="/users")
 
 @user_bp.route("/register", methods=["POST"])

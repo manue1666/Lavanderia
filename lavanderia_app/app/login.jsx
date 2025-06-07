@@ -6,7 +6,6 @@ import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 export default function Login() {
 
   const router = useRouter()
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -72,7 +71,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-
     padding: 10,
     alignItems: 'center',
     justifyContent: 'flex-start',
