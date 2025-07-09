@@ -2,74 +2,83 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
 
 export default function CreateClientScreen() {
+  const router = useRouter();
+  const [client, setClient] = useState({
+    name: "",
+    phone_number: "",
+    address: ""
+  });
 
-  const router = useRouter()
-  const [name, setName] = useState("");
-  const [phone_number, setPhoneN] = useState("");
-  const [address, setAddress] = useState("");
-
-  const crearCliente = async () => {
+  const handleCreateClient = async () => {
     try {
-      if (!name || !phone_number || !address) {
-        Alert.alert("completa los datos")
-        return
+      // Validacion de campos
+      if (!client.name || !client.phone_number || !client.address) {
+        Alert.alert("Error", "Por favor completa todos los campos");
+        return;
       }
 
-      const response = await fetch(`https://5q79hxmw-5000.usw3.devtunnels.ms/clients/create`, {
+      const response = await fetch(`${API_URL}/clients/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone_number, address }),
+        body: JSON.stringify(client),
       });
 
-      const data = response.json()
-
-
-      if (response.ok) {
-        Alert.alert("Cliente creado con exito")
-        console.log(data)
-        router.push("/clientes")
-
-      } else {
-        Alert.alert("error al crear usuario")
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al crear cliente");
       }
 
+      const data = await response.json();
+      Alert.alert("Éxito", "Cliente creado correctamente");
+      console.log(data)
+      router.push("/clientes");
+
     } catch (error) {
-      Alert.alert("ocurrio un error:")
-      console.log("ocurrio un error", error)
+      console.error("Error al crear cliente:", error);
+      Alert.alert("Error", error.message || "Ocurrió un error al crear el cliente");
     }
-  }
+  };
+
+  const handleChange = (field, value) => {
+    setClient(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <View style={styles.container}>
-      <View>
-        <Text style={styles.title}>Crear Cliente</Text>
-        <Text style={styles.label}>Nombre:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='ingresa tu nombre'
-          value={name}
-          onChangeText={(text) => setName(text)}
-        />
-        <Text style={styles.label}>Telefono:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='ingresa tu telefono'
-          value={phone_number}
-          onChangeText={(text) => setPhoneN(text)}
-        />
-        <Text style={styles.label}>Direccion:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='ingresa tu direccion'
-          value={address}
-          onChangeText={(text) => setAddress(text)}
-        />
-        <Pressable style={styles.send} onPress={crearCliente}>
-          <Text style={styles.textButton}>Crear</Text>
-        </Pressable>
-      </View>
+      <Text style={styles.title}>Crear Cliente</Text>
+      
+      <Text style={styles.label}>Nombre:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa el nombre"
+        value={client.name}
+        onChangeText={(text) => handleChange('name', text)}
+        autoCapitalize="words"
+      />
+      
+      <Text style={styles.label}>Teléfono:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa el teléfono"
+        value={client.phone_number}
+        onChangeText={(text) => handleChange('phone_number', text)}
+        keyboardType="phone-pad"
+      />
+      
+      <Text style={styles.label}>Dirección:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa la dirección"
+        value={client.address}
+        onChangeText={(text) => handleChange('address', text)}
+      />
+      
+      <Pressable style={styles.button} onPress={handleCreateClient}>
+        <Text style={styles.buttonText}>Crear Cliente</Text>
+      </Pressable>
     </View>
   );
 }
@@ -78,59 +87,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    padding: 24,
   },
   title: {
-    fontSize: 30,
-    marginTop: 30,
+    fontSize: 24,
     fontWeight: "bold",
-    margin: 15,
-    marginLeft: 1
+    marginVertical: 24,
+    textAlign: 'center',
   },
   label: {
-    marginTop: 15,
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   input: {
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: "gray",
-    fontSize: 20,
-    paddingHorizontal: 10,
-    marginVertical: 15,
-    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
   },
-  send: {
-    backgroundColor: "blue",
-    borderRadius: 10,
-    marginTop: 15,
+  button: {
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 24,
     alignItems: "center",
-    paddingVertical: 10,
-    width: 300
   },
-  recover: {
-    backgroundColor: "darkred",
-    borderRadius: 10,
-    marginTop: 15,
-    alignItems: "center",
-    paddingVertical: 10,
-    padding: 15
-  },
-  textButton: {
+  buttonText: {
     color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  containerFooter: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    fontSize: 20,
-    margin: 5,
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

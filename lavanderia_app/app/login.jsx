@@ -1,68 +1,81 @@
-
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
+
 export default function Login() {
+  const router = useRouter();
+  const [credentials, setCredentials] = useState({
+    email: "",
+    password: ""
+  });
 
-  const router = useRouter()
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-
-  const loginer = async () => {
+  const handleLogin = async () => {
     try {
-      if (!email || !password) {
-        Alert.alert("error", "completa los datos")
-        return
+      // Validacion de campos
+      if (!credentials.email || !credentials.password) {
+        Alert.alert("Error", "Por favor completa todos los campos");
+        return;
       }
 
-      const response = await fetch(`https://5q79hxmw-5000.usw3.devtunnels.ms/users/login`, {
+      const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(credentials),
       });
 
-      const data = await response.json()
-
-      if (response.ok) {
-        Alert.alert("Usuario logeado con exito")
-        console.log(data)
-        router.push("/clientes")
-
-      } else {
-        Alert.alert("Error al enviar los datos")
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Credenciales incorrectas");
       }
 
+      const data = await response.json();
+      Alert.alert("Éxito", "Sesión iniciada correctamente");
+      console.log(data)
+      router.push("/clientes");
+
     } catch (error) {
-      Alert.alert("error en el servidor")
+      console.error("Error en el login:", error);
+      Alert.alert("Error", error.message || "Error en el servidor");
     }
-  }
+  };
+
+  const handleChange = (field, value) => {
+    setCredentials(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <View style={styles.container}>
-      <View>
-        <Text style={styles.title}>Iniciar Sesion</Text>
-        <Text style={styles.label}>Email:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='ingresa tu correo'
-          value={email}
-          onChangeText={(text) => setEmail(text)}
-        />
-        <Text style={styles.label}>Password:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='ingresa tu contraseña'
-          secureTextEntry={true}
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-        />
-        <Pressable style={styles.send} onPress={loginer}>
-          <Text style={styles.textButton}>Login</Text>
-        </Pressable>
-
-      </View>
+      <Text style={styles.title}>Iniciar Sesión</Text>
+      
+      <Text style={styles.label}>Email:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa tu correo"
+        value={credentials.email}
+        onChangeText={(text) => handleChange('email', text)}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+      
+      <Text style={styles.label}>Contraseña:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa tu contraseña"
+        secureTextEntry={true}
+        value={credentials.password}
+        onChangeText={(text) => handleChange('password', text)}
+        autoCapitalize="none"
+      />
+      
+      <Pressable 
+        style={styles.button} 
+        onPress={handleLogin}
+      >
+        <Text style={styles.buttonText}>Iniciar Sesión</Text>
+      </Pressable>
     </View>
   );
 }
@@ -71,56 +84,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    padding: 24,
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 30,
-    marginTop: 70,
+    fontSize: 24,
     fontWeight: "bold",
-    margin: 15
+    marginBottom: 32,
+    textAlign: 'center',
   },
   label: {
-    marginTop: 20,
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   input: {
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: "gray",
-    fontSize: 20,
-    paddingHorizontal: 10,
-    marginVertical: 15,
-    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
   },
-  send: {
-    backgroundColor: "blue",
-    borderRadius: 10,
-    marginTop: 15,
+  button: {
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 24,
     alignItems: "center",
-    paddingVertical: 10,
   },
-  recover: {
-    backgroundColor: "darkred",
-    borderRadius: 10,
-    marginTop: 15,
-    alignItems: "center",
-    paddingVertical: 10,
-    padding: 15
-  },
-  textButton: {
+  buttonText: {
     color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  containerFooter: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    fontSize: 20,
-    margin: 5,
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

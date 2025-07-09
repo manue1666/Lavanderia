@@ -1,49 +1,69 @@
 import { useRouter, useSearchParams } from 'expo-router/build/hooks';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+
+const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
 
 export default function DeleteClientScreen() {
-    const router = useRouter()
-    const params = useSearchParams()
-    const id = params.get("id")
-    console.log("ID recibido:", id)
+    const router = useRouter();
+    const params = useSearchParams();
+    const id = params.get("id");
+    console.log("ID recibido:", id);
 
-
-    const delClient = async () => {
-
+    const deleteClient = async () => {
         if (!id) {
-            Alert.alert("error", "ID no encontrado")
+            Alert.alert("Error", "ID de cliente no encontrado");
             return;
         }
 
         try {
-            const response = await fetch(`https://5q79hxmw-5000.usw3.devtunnels.ms/clients/delete/${id}`, {
+            const response = await fetch(`${API_URL}/clients/delete/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-            })
+            });
 
-            const data = await response.json()
-
-            if (response.ok) {
-                Alert.alert("exito", "cliente borrado correctamente")
-                console.log(data);
-                router.push("/clientes")
-            } else {
-                Alert.alert("error", "No se pudo borrar el cliente")
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "No se pudo eliminar el cliente");
             }
+
+            const data = await response.json();
+            Alert.alert("Éxito", "Cliente eliminado correctamente");
+            console.log("Respuesta:", data);
+            router.push("/clientes");
+            
         } catch (error) {
-            Alert.alert("error en el servidor")
-            console.log("error:", error)
+            console.error("Error:", error);
+            Alert.alert("Error", error.message || "Error en el servidor");
         }
     };
 
     return (
         <View style={styles.container}>
-            <View>
+            <View style={styles.card}>
                 <Text style={styles.title}>Eliminar Cliente</Text>
-                <Text style={styles.label}>ID: {id}</Text>
-                <Pressable style={styles.send} onPress={delClient}>
-                    <Text style={styles.textButton}>Eliminar</Text>
-                </Pressable>
+                <Text style={styles.idText}>¿Estás seguro de eliminar al cliente con ID: {id}?</Text>
+                
+                <View style={styles.buttonContainer}>
+                    <Pressable 
+                        style={({ pressed }) => [
+                            styles.cancelButton,
+                            pressed && styles.buttonPressed
+                        ]} 
+                        onPress={() => router.push("/clientes")}
+                    >
+                        <Text style={styles.buttonText}>Cancelar</Text>
+                    </Pressable>
+                    
+                    <Pressable 
+                        style={({ pressed }) => [
+                            styles.deleteButton,
+                            pressed && styles.buttonPressed
+                        ]} 
+                        onPress={deleteClient}
+                    >
+                        <Text style={styles.buttonText}>Confirmar Eliminación</Text>
+                    </Pressable>
+                </View>
             </View>
         </View>
     );
@@ -52,43 +72,61 @@ export default function DeleteClientScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
+        backgroundColor: '#f5f5f5',
+        padding: 20,
+        justifyContent: 'center',
+    },
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
     },
     title: {
-        fontSize: 30,
-        marginTop: 30,
-        fontWeight: "bold",
-        margin: 15,
-        marginLeft: 1
+        fontSize: 24,
+        fontWeight: '600',
+        color: '#d32f2f',
+        marginBottom: 16,
+        textAlign: 'center',
     },
-    label: {
-        marginTop: 15,
-        fontSize: 20,
-        fontWeight: "bold",
+    idText: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 24,
+        textAlign: 'center',
     },
-    input: {
-        borderRadius: 50,
-        borderWidth: 3,
-        borderColor: "gray",
-        fontSize: 20,
-        paddingHorizontal: 10,
-        marginVertical: 15,
-        backgroundColor: "white",
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 16,
     },
-    send: {
-        backgroundColor: "red",
-        borderRadius: 10,
-        marginTop: 15,
-        alignItems: "center",
-        paddingVertical: 10,
-        width: 300
+    cancelButton: {
+        backgroundColor: '#757575',
+        borderRadius: 8,
+        padding: 14,
+        flex: 1,
+        marginRight: 8,
+        alignItems: 'center',
     },
-    textButton: {
-        color: "white",
-        fontSize: 20,
-        fontWeight: "bold",
+    deleteButton: {
+        backgroundColor: '#d32f2f',
+        borderRadius: 8,
+        padding: 14,
+        flex: 1,
+        marginLeft: 8,
+        alignItems: 'center',
+    },
+    buttonPressed: {
+        opacity: 0.8,
+        transform: [{ scale: 0.98 }],
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
