@@ -31,3 +31,4 @@ def delete_client(client_id):
     db.session.delete(client)
     db.session.commit()
     return client
+

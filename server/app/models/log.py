@@ -10,3 +10,5 @@ class Log(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     action = db.Column(db.String(50))
     date = db.Column(db.DateTime)
+
+
