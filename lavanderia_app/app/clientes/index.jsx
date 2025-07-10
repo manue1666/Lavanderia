@@ -27,7 +27,7 @@ export default function ClientsScreen() {
 
       const data = await response.json();
       const resultData = type === "phone" ? [data] : data;
-      
+
       Alert.alert("Éxito", "Usuario encontrado con éxito");
       setClientes(resultData);
 
@@ -39,15 +39,15 @@ export default function ClientsScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Módulo de Clientes</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Buscar por nombre"
         value={name}
         onChangeText={setName}
       />
-      <Pressable 
-        style={styles.button} 
+      <Pressable
+        style={styles.button}
         onPress={() => searchClient("name", name)}
       >
         <Text style={styles.textButton}>Buscar por Nombre</Text>
@@ -60,8 +60,8 @@ export default function ClientsScreen() {
         onChangeText={setPhone}
         keyboardType="phone-pad"
       />
-      <Pressable 
-        style={styles.button} 
+      <Pressable
+        style={styles.button}
         onPress={() => searchClient("phone", phone)}
       >
         <Text style={styles.textButton}>Buscar por Teléfono</Text>
@@ -69,6 +69,10 @@ export default function ClientsScreen() {
 
       <Pressable style={styles.button}>
         <Link href="/clientes/createC" style={styles.textButton}>Crear Cliente</Link>
+      </Pressable>
+
+      <Pressable style={styles.button}>
+        <Link href="/ordenes" style={styles.textButton}>Ordenes</Link>
       </Pressable>
 
       <FlatList

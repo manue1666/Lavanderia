@@ -48,7 +48,7 @@ def handle_create_order():
                 if not service:
                     service = add_service(
                         name=service_data["name"],
-                        description=service_data["description momentanea"],
+                        description=service_data["service_description"],
                         price=service_data["unitPrice"]
                     )
                 

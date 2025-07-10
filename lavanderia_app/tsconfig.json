@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "app/clientes/createC.jsx", "app/usuarios/createU.jsx", "app/login.jsx", "app/index.jsx", "app/+not-found.jsx", "app/_layout.jsx", "app/clientes/updateC.jsx", "app/clientes/index.jsx","app/clientes/deleteC.jsx"  ]
+, "app/clientes/createC.jsx", "app/usuarios/createU.jsx", "app/login.jsx", "app/index.jsx", "app/+not-found.jsx", "app/_layout.jsx", "app/clientes/updateC.jsx", "app/clientes/index.jsx","app/clientes/deleteC.jsx", "app/ordenes/index.jsx", "app/ordenes/garmentList.jsx", "app/ordenes/orderHeader.jsx", "app/ordenes/orderSummary.jsx"  ]
 }
