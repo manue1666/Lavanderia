@@ -1,7 +1,6 @@
 import { useRouter, useSearchParams } from 'expo-router/build/hooks';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
 export default function DeleteClientScreen() {
     const router = useRouter();
@@ -16,7 +15,7 @@ export default function DeleteClientScreen() {
         }
 
         try {
-            const response = await fetch(`${API_URL}/clients/delete/${id}`, {
+            const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/clients/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
             });

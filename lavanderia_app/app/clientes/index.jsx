@@ -1,8 +1,7 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms/";
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
 export default function ClientsScreen() {
   const [name, setName] = useState("");
@@ -16,7 +15,7 @@ export default function ClientsScreen() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/clients/search/${type}?${type}=${encodeURIComponent(value)}`, {
+      const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/clients/search?${type}=${encodeURIComponent(value)}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

@@ -1,44 +1,62 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
 
-export default function CreateUserScreen() {
+export default function LoginScreen() {
   const router = useRouter();
   const [form, setForm] = useState({
-    name: "",
     email: "",
     password: ""
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
+  const handleLogin = async () => {
     try {
-      // Validacion de campos
-      if (!form.email || !form.name || !form.password) {
+      // Validación de campos
+      if (!form.email || !form.password) {
         Alert.alert("Error", "Por favor completa todos los campos");
         return;
       }
 
-      const response = await fetch(`${API_URL}/users/register`, {
+      setLoading(true);
+
+      const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/users/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password
+        }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al registrar usuario");
+        throw new Error(data.error || "Credenciales incorrectas");
       }
 
-      const data = await response.json();
-      Alert.alert("Éxito", "Usuario registrado correctamente");
-      console.log(data)
-      router.push("/login");
+      // Verifica que el token venga en la respuesta
+      if (!data.access_token) {
+        throw new Error("No se recibió token de acceso");
+      }
+
+      // Aquí deberías guardar el token en AsyncStorage o tu solución de estado global
+      // Ejemplo: await AsyncStorage.setItem('userToken', data.access_token);
+      
+      Alert.alert("Éxito", "Inicio de sesión correcto");
+      console.log("Token recibido:", data.access_token);
+      router.replace("/home"); // Cambia a tu ruta principal
 
     } catch (error) {
-      console.error("Error en el registro:", error);
+      console.error("Error en el login:", error.message);
       Alert.alert("Error", error.message || "Error en el servidor");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,16 +66,7 @@ export default function CreateUserScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Registrarse</Text>
-      
-      <Text style={styles.label}>Nombre:</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ingresa tu nombre"
-        value={form.name}
-        onChangeText={(text) => handleChange('name', text)}
-        autoCapitalize="words"
-      />
+      <Text style={styles.title}>Iniciar Sesión</Text>
       
       <Text style={styles.label}>Email:</Text>
       <TextInput
@@ -67,6 +76,7 @@ export default function CreateUserScreen() {
         onChangeText={(text) => handleChange('email', text)}
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
       />
       
       <Text style={styles.label}>Contraseña:</Text>
@@ -77,10 +87,24 @@ export default function CreateUserScreen() {
         value={form.password}
         onChangeText={(text) => handleChange('password', text)}
         autoCapitalize="none"
+        autoCorrect={false}
       />
       
-      <Pressable style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Registrarse</Text>
+      <Pressable 
+        style={[styles.button, loading && styles.buttonDisabled]} 
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Cargando..." : "Iniciar Sesión"}
+        </Text>
+      </Pressable>
+
+      <Pressable 
+        style={styles.secondaryButton} 
+        onPress={() => router.push("/register")}
+      >
+        <Text style={styles.secondaryButtonText}>¿No tienes cuenta? Regístrate</Text>
       </Pressable>
     </View>
   );
@@ -91,11 +115,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginVertical: 24,
+    marginBottom: 24,
     textAlign: 'center',
   },
   label: {
@@ -118,9 +143,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
   },
+  buttonDisabled: {
+    backgroundColor: "#A0C4FF",
+  },
   buttonText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "600",
+  },
+  secondaryButton: {
+    padding: 14,
+    marginTop: 12,
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    color: "#007AFF",
+    fontSize: 14,
     fontWeight: "600",
   },
 });

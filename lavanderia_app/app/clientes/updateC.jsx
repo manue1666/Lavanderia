@@ -1,8 +1,8 @@
 import { useRouter, useSearchParams } from 'expo-router/build/hooks';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
 
 export default function UpdateClientScreen() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function UpdateClientScreen() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/clients/update/${id}`, {
+      const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/clients/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

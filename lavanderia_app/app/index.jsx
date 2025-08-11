@@ -6,18 +6,22 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Bienvenido</Text>
       <Text style={styles.subtitle}>¿Qué deseas hacer?</Text>
-      
+
       <View style={styles.buttonContainer}>
         <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
           <Link href="/login" style={styles.buttonText}>Iniciar Sesión</Link>
         </Pressable>
-        
+
         <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
           <Link href="/usuarios/createU" style={styles.buttonText}>Registrarse</Link>
         </Pressable>
-        
+
         <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
           <Link href="/clientes" style={styles.buttonText}>Ver Clientes</Link>
+        </Pressable>
+
+        <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+          <Link href="/dashboard" style={styles.buttonText}>Ver Dashboard</Link>
         </Pressable>
       </View>
     </View>

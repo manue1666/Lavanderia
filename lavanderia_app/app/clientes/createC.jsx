@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
 
 export default function CreateClientScreen() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function CreateClientScreen() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/clients/create`, {
+      const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/clients/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(client),

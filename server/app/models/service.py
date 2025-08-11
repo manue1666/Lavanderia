@@ -1,3 +1,4 @@
+# service.py
 from app.database.db import db
 
 class Service(db.Model):
@@ -8,14 +9,16 @@ class Service(db.Model):
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.String(255))
     
-    # Relación con OrderDetail
+    # Relaciones
     order_details = db.relationship("OrderDetail", back_populates="service", lazy=True)
     
     def to_dict(self, include_order_details=False):
-        return {
+        service = {
             "id": self.id,
             "name": self.name,
             "price": self.price,
-            "description": self.description,
-            "order_details": [od.to_dict() for od in self.order_details] if include_order_details else None
+            "description": self.description
         }
+        if include_order_details:
+            service["order_details"] = [od.to_dict() for od in self.order_details]
+        return service

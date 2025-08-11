@@ -1,114 +1,111 @@
-from app.database.db import db
+# order_controller.py
 from app.models.order import Order
 from app.models.garment import Garment
 from app.models.service import Service
 from app.models.order_detail import OrderDetail
-
+from app.models.client import Client
+from app.models.user import User
+from app import db
+from datetime import datetime
 
 def create_order(client_id, user_id, estimated_date, total_price):
-    order = Order(
+    new_order = Order(
         client_id=client_id,
         user_id=user_id,
         estimated_delivery_date=estimated_date,
         total=total_price,
-        state="recibido", 
-        pagado=False      
+        state="recibido",
+        paid=False
     )
-    db.session.add(order)
+    db.session.add(new_order)
+    db.session.commit()
+    return new_order
+
+def get_order(order_id):
+    return Order.query.get(order_id)
+
+def get_all_orders():
+    return Order.query.order_by(Order.created_at.desc()).all()
+
+def update_order(order_id, updated_data):
+    order = Order.query.get(order_id)
+    if not order:
+        return None
+    
+    for key, value in updated_data.items():
+        setattr(order, key, value)
+    
     db.session.commit()
     return order
 
-
-
-def add_garment(order_id, type, description, observations):
-    garment = Garment(order_id=order_id,
-                      type=type,
-                      description=description,
-                      observations=observations)
-    db.session.add(garment)
+def delete_order(order_id):
+    order = Order.query.get(order_id)
+    if not order:
+        return None
+    
+    db.session.delete(order)
     db.session.commit()
-    return garment
-
-
-def create_order_detail(garment_id, service_id, quantity):
-    order_detail = OrderDetail(garment_id=garment_id,
-                               service_id=service_id,
-                               quantity=quantity)
-    db.session.add(order_detail)
-    db.session.commit()
-    return order_detail
-
+    return True
 
 def update_order_status(order_id, new_status):
     order = Order.query.get(order_id)
     if not order:
         return None
+    
     order.state = new_status
     db.session.commit()
     return order
 
-def list_orders_by_status(status):
-    orders = Order.query.filter_by(state=status).all()
-    data = [{
-        "id":o.id,
-        "client_id": o.client_id,
-        "state": o.state,
-        "estimated_delivery_date": o.estimated_delivery_date,
-        "total": o.total,
-        "pagado": o.pagado,
-    } for o in orders]
-    return data
-
-
-def add_service(name, description, price):
-    service = Service(name=name, description=description, price=price)
-    db.session.add(service)
+def add_garment_to_order(order_id, garment_type, description=None, observations=None):
+    garment = Garment(
+        type=garment_type,
+        description=description,
+        observations=observations
+    )
+    db.session.add(garment)
     db.session.commit()
-    return service
+    return garment
 
+def add_service_to_garment(garment_id, service_id, quantity=1):
+    order_detail = OrderDetail(
+        garment_id=garment_id,
+        service_id=service_id,
+        quantity=quantity
+    )
+    db.session.add(order_detail)
+    db.session.commit()
+    return order_detail
 
-def get_order_detail(order_id):
-    try:
-        order = Order.query.get(order_id)
-        if not order:
-            return {"error": "Order not found"}, 404
+def get_order_details(order_id):
+    order = Order.query.get(order_id)
+    if not order:
+        return None
+    
+    return {
+        "order": order.to_dict(include_details=True),
+        "client": order.client.to_dict(),
+        "user": order.user.to_dict()
+    }
 
-        order_data = {
-            "order_id": order.id,
-            "client": order.clients.name if order.clients else None,
-            "status": order.state,
-            "garments": []
-        }
+def get_orders_by_status(status):
+    return Order.query.filter_by(state=status).all()
 
-        
-        garments = Garment.query.filter_by(order_id=order.id).all()
-        
-        for garment in garments:
-            garment_data = {
-                "type": garment.type,
-                "description": garment.description,
-                "observations": garment.observations,
-                "services": []
-            }
+def get_dashboard_orders(pagination=1, per_page=10):
+    offset = (pagination - 1) * per_page
+    return Order.query.order_by(Order.created_at.desc()).offset(offset).limit(per_page).all()
 
-            
-            details = OrderDetail.query.filter_by(garment_id=garment.id).all()
-            
-            for detail in details:
-                
-                service = detail.service  
-                
-                if service:  
-                    garment_data["services"].append({
-                        "name": service.name,
-                        "description": service.description,
-                        "price": float(service.price),
-                        "quantity": detail.quantity  
-                    })
+def get_pending_orders(pagination=1, per_page=10):
+    offset = (pagination - 1) * per_page
+    pending_states = ["recibido", "en proceso"]
+    return Order.query.filter(Order.state.in_(pending_states))\
+                     .order_by(Order.created_at.desc())\
+                     .offset(offset).limit(per_page).all()
 
-            order_data["garments"].append(garment_data)
-
-        return order_data
-
-    except Exception as e:
-        return {"error": str(e)}, 500
+def get_system_counts():
+    return {
+        "garments": Garment.query.count(),
+        "services": Service.query.count(),
+        "clients": Client.query.count(),
+        "users": User.query.count(),
+        "orders": Order.query.count()
+    }

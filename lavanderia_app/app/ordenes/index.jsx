@@ -3,8 +3,7 @@ import { Alert, ScrollView } from 'react-native';
 import GarmentList from './garmentList';
 import OrderHeader from './orderHeader';
 import OrderSummary from './orderSummary';
-
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
 const garmentsList = [
     "Camisa", "Pantalon", "Prenda Interior", "Blusa", "Vestido",
@@ -97,8 +96,8 @@ const OrderForm = () => {
 
     const confirmOrder = async () => {
         try {
-            
-            const response = await fetch(`${API_URL}/orders/create`, {
+
+            const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/orders/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(order.apiData) 

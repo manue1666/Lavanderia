@@ -1,113 +1,113 @@
+# order_route.py
 from flask import Blueprint, request, jsonify
-from app.Controllers.order_controller import create_order, add_garment, add_service, create_order_detail,get_order_detail
-import datetime
-from app.database.db import db
-from app.models.service import Service
-from app.models.order_detail import OrderDetail
-from app.models.garment import Garment
+from datetime import datetime
+from app.Controllers.order_controller import (
+    create_order, get_order, get_all_orders,
+    update_order, delete_order, update_order_status,
+    add_garment_to_order, add_service_to_garment,
+    get_order_details, get_orders_by_status,
+    get_dashboard_orders, get_pending_orders,
+    get_system_counts
+)
 
+order_bp = Blueprint('orders', __name__, url_prefix='/orders')
 
+@order_bp.route('/', methods=['GET'])
+def get_orders():
+    orders = get_all_orders()
+    return jsonify([order.to_dict() for order in orders]), 200
 
-order_bp = Blueprint('order_bp', __name__, url_prefix='/orders')
+@order_bp.route('/<int:order_id>', methods=['GET'])
+def get_single_order(order_id):
+    order = get_order(order_id)
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+    return jsonify(order.to_dict(include_details=True)), 200
 
-@order_bp.route('/create', methods=['POST'])
+@order_bp.route('/', methods=['POST'])
 def handle_create_order():
     data = request.json
-    
-    
-    required_fields = ['client_id', 'user_id', 'estimated_delivery_date', 'total', 'garments']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"Missing field: {field}"}), 400
+    required_fields = ['client_id', 'user_id', 'estimated_delivery_date', 'total']
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        
-        date_parts = list(map(int, data["estimated_delivery_date"].split("-")))
-        delivery_date = datetime.date(*date_parts)
-        
-        
-        order = create_order(
-            client_id=data["client_id"],
-            user_id=data["user_id"],
-            estimated_date=delivery_date,
-            total_price=data["total"]
-        )
+        delivery_date = datetime.fromisoformat(data["estimated_delivery_date"])
+    except ValueError:
+        return jsonify({"error": "Invalid date format"}), 400
 
-        
-        for garment_data in data["garments"]:
-            garment = add_garment(
-                order_id=order.id,
-                type=garment_data["type"],
-                description=garment_data["description"],
-                observations=garment_data["observations"]
-            )
+    order = create_order(
+        client_id=data["client_id"],
+        user_id=data["user_id"],
+        estimated_date=delivery_date,
+        total_price=data["total"]
+    )
 
-            
-            for service_data in garment_data["services"]:
-                service = Service.query.filter_by(name=service_data["name"]).first()
-                if not service:
-                    service = add_service(
-                        name=service_data["name"],
-                        description=service_data["service_description"],
-                        price=service_data["unitPrice"]
-                    )
-                
-                order_detail = OrderDetail(
-                    order_id=order.id,
-                    garment_id=garment.id,
-                    service_id=service.id,
-                    quantity=service_data["quantity"]
-                )
-                db.session.add(order_detail)
-        
-        db.session.commit()
+    if not order:
+        return jsonify({"error": "Order creation failed"}), 400
 
-        
-        from app.models.client import Client 
-        
-        order_response = {
-            "order_id": order.id,
-            "client": Client.query.get(order.client_id).name, 
-            "status": order.state,
-            "garments": []
-        }
+    return jsonify({
+        "msg": "Order created successfully",
+        "order": order.to_dict()
+    }), 201
 
-        
-        garments = Garment.query.filter_by(order_id=order.id).all()
-        
-        for garment in garments:
-            garment_data = {
-                "type": garment.type,
-                "description": garment.description,
-                "observations": garment.observations,
-                "services": []
-            }
+@order_bp.route('/<int:order_id>', methods=['PUT'])
+def update_order_route(order_id):
+    data = request.json
+    order = update_order(order_id, data)
+    if not order:
+        return jsonify({"error": "Order update failed"}), 400
+    return jsonify({"msg": "Order updated", "order": order.to_dict()}), 200
 
-            
-            details = OrderDetail.query.filter_by(garment_id=garment.id).all()
-            
-            for detail in details:
-                service = Service.query.get(detail.service_id)
-                if service:
-                    garment_data["services"].append({
-                        "name": service.name,
-                        "description": service.description,
-                        "price": float(service.price),
-                        "quantity": detail.quantity
-                    })
+@order_bp.route('/<int:order_id>', methods=['DELETE'])
+def delete_order_route(order_id):
+    if not delete_order(order_id):
+        return jsonify({"error": "Order not found"}), 404
+    return jsonify({"msg": "Order deleted"}), 200
 
-            order_response["garments"].append(garment_data)
+@order_bp.route('/<int:order_id>/status', methods=['PATCH'])
+def change_order_status(order_id):
+    data = request.json
+    new_status = data.get("status")
+    if not new_status:
+        return jsonify({"error": "Status is required"}), 400
+    
+    order = update_order_status(order_id, new_status)
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+    
+    return jsonify({
+        "msg": "Order status updated",
+        "status": order.state
+    }), 200
 
-        return jsonify(order_response), 201
+@order_bp.route('/<int:order_id>/garments', methods=['POST'])
+def add_garment_route(order_id):
+    data = request.json
+    garment = add_garment_to_order(
+        order_id=order_id,
+        garment_type=data.get("type"),
+        description=data.get("description"),
+        observations=data.get("observations")
+    )
+    return jsonify({
+        "msg": "Garment added to order",
+        "garment": garment.to_dict()
+    }), 201
 
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+@order_bp.route('/dashboard', methods=['GET'])
+def dashboard_orders():
+    page = request.args.get('page', 1, type=int)
+    orders = get_dashboard_orders(page)
+    return jsonify([order.to_dict() for order in orders]), 200
 
-@order_bp.route("/get-order-detail/<int:order_id>",methods=["GET"])
-def get_order_detail_endpoint(order_id):
-    try:
-        order = get_order_detail(order_id)
-        return jsonify({"msg":"detale de orden obtenido", "order":order}),200
-    except Exception as e:
-        return jsonify({"msg":"fallo", "error":e}),500
+@order_bp.route('/pending', methods=['GET'])
+def pending_orders():
+    page = request.args.get('page', 1, type=int)
+    orders = get_pending_orders(page)
+    return jsonify([order.to_dict() for order in orders]), 200
+
+@order_bp.route('/counts', methods=['GET'])
+def system_counts():
+    counts = get_system_counts()
+    return jsonify(counts), 200

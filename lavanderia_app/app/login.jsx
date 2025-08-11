@@ -1,8 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-
-const API_URL = "https://fzr3fd6k-5000.usw3.devtunnels.ms";
+const EXPO_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_BASE_URL
 
 export default function Login() {
   const router = useRouter();
@@ -19,7 +18,7 @@ export default function Login() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/users/login`, {
+      const response = await fetch(`${EXPO_PUBLIC_BASE_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
